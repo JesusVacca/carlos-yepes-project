@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-)o$xyx1&6)f5a19(9ijpdq9498c6uf*k-1q188d#w@wp_^2v#v
 
 DEBUG = True
 ALLOWED_HOSTS = [
-
+    '2.25.115.154'
 ]
 
 
