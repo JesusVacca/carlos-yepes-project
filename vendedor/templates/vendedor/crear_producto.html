@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Crear Producto - Vapes Yepes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #030305;
+            --card-bg: rgba(18, 19, 26, 0.85);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --neon-purple: #8b5cf6;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* CANVAS HUMO NEÓN GLSL */
+        #webglSmoke {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+        }
+
+        /* FORZAR TODO EL TEXTO A BLANCO NÍTIDO */
+        h1, h2, h3, h4, h5, h6, p, span, small, label, a {
+            color: #ffffff !important;
+        }
+
+        .form-label {
+            color: #f1f5f9 !important;
+            font-weight: 600;
+        }
+
+        .form-control {
+            background: #1a1c29 !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .form-control:focus {
+            border-color: var(--neon-purple) !important;
+            box-shadow: 0 0 15px rgba(139,92,246,0.6) !important;
+            color: #ffffff !important;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1;
+        }
+
+        /* Contenedor dinámico de sabores */
+        .sabores-container {
+            max-height: 350px;
+            overflow-y: auto;
+            background: #12131a;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .sabor-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+            background: #1a1c29;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sabor-input-qty {
+            width: 90px !important;
+            padding: 12px 10px !important;
+            text-align: center;
+            color: #ffffff !important;
+            background: #252838 !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS HUMO NEÓN GLSL -->
+    <canvas id="webglSmoke"></canvas>
+
+    <div class="container my-5" style="position: relative; z-index: 1;">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold fs-4 mb-0 text-warning">
+                            <i class="fa-solid fa-plus-circle me-2"></i> Crear Nuevo Producto
+                        </h3>
+                        <a href="{% url 'vendedor:panel_general' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Volver
+                        </a>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Nombre -->
+                        <div class="mb-3">
+                            <label class="form-label small">Nombre del Producto</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Ej: CZAR, Lost Mary..." required>
+                        </div>
+
+                        <!-- Fila para Precios -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small">Precio de Compra ($)</label>
+                                <input type="number" step="0.01" name="precio_compra" class="form-control" placeholder="0.00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small">Precio de Venta ($)</label>
+                                <input type="number" step="0.01" name="precio" class="form-control" placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <!-- Asignación de Sabores, Cantidades e Imágenes -->
+                        <div class="mb-3">
+                            <label class="form-label small mb-2">
+                                <i class="fa-solid fa-droplet me-1 text-warning"></i> Escribe los sabores, su cantidad y la foto de ese sabor específico:
+                            </label>
+
+                            <div class="sabores-container" id="lista-sabores">
+                                <div class="sabor-item">
+                                    <input type="text" name="sabores[]" class="form-control" placeholder="Nombre (Ej: Fresa Hielo)" required>
+                                    <input type="number" name="cantidades[]" class="form-control sabor-input-qty" placeholder="Cant" min="0" value="1" required>
+                                    <input type="file" name="imagens_sabores[]" class="form-control" accept="image/*">
+                                    <button type="button" class="btn btn-outline-danger px-3" onclick="eliminarFila(this)"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-warning btn-sm mt-3" onclick="agregarSaborField()">
+                                <i class="fa-solid fa-plus me-1"></i> Añadir otro sabor
+                            </button>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+                            <label class="form-label small">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="3" placeholder="Detalles del producto..."></textarea>
+                        </div>
+
+                        <!-- Imagen General -->
+                        <div class="mb-4">
+                            <label class="form-label small">Imagen General del Producto</label>
+                            <input type="file" name="imagen" class="form-control">
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold rounded-3 text-dark shadow">
+                            <i class="fa-solid fa-check me-2"></i> Registrar Producto y Stock por Sabores
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT PARA AGREGAR FILAS DINÁMICAS DE SABORES -->
+    <script>
+        function agregarSaborField() {
+            const container = document.getElementById('lista-sabores');
+            const row = document.createElement('div');
+            row.className = 'sabor-item';
+            row.innerHTML = `
+                <input type="text" name="sabores[]" class="form-control" placeholder="Nombre (Ej: Uva Menta)" required>
+                <input type="number" name="cantidades[]" class="form-control sabor-input-qty" placeholder="Cant" min="0" value="1" required>
+                <input type="file" name="imagens_sabores[]" class="form-control" accept="image/*">
+                <button type="button" class="btn btn-outline-danger px-3" onclick="eliminarFila(this)"><i class="fa-solid fa-trash"></i></button>
+            `;
+            container.appendChild(row);
+        }
+
+        function eliminarFila(button) {
+            const container = document.getElementById('lista-sabores');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                alert("Debes mantener al menos un sabor.");
+            }
+        }
+    </script>
+
+    <!-- GLSL CANVAS SHADER PARA EL EFECTO HUMO NEÓN -->
+    <script>
+        const canvas = document.getElementById('webglSmoke');
+        const gl = canvas.getContext('webgl', { alpha: false, preserveDrawingBuffer: false }) || canvas.getContext('experimental-webgl');
+
+        if (gl) {
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', resize);
+
+            const vsSource = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision mediump float;
+                uniform vec2 u_resolution;
+                uniform float u_time;
+
+                float hash(vec2 p) {
+                    p = fract(p * vec2(123.34, 456.21));
+                    p += dot(p, p + 45.32);
+                    return fract(p.x * p.y);
+                }
+
+                float noise(vec2 p) {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    f = f * f * (3.0 - 2.0 * f);
+                    float a = hash(i);
+                    float b = hash(i + vec2(1.0, 0.0));
+                    float c = hash(i + vec2(0.0, 1.0));
+                    float d = hash(i + vec2(1.0, 1.0));
+                    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                }
+
+                float fbm(vec2 p) {
+                    float v = 0.0;
+                    float a = 0.5;
+                    vec2 shift = vec2(100.0);
+                    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+                    for (int i = 0; i < 5; ++i) {
+                        v += a * noise(p);
+                        p = rot * p * 2.0 + shift;
+                        a *= 0.5;
+                    }
+                    return v;
+                }
+
+                void main() {
+                    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                    st.x *= u_resolution.x / u_resolution.y;
+
+                    vec2 q = vec2(0.0);
+                    q.x = fbm(st + 0.04 * u_time);
+                    q.y = fbm(st + vec2(1.0));
+
+                    vec2 r = vec2(0.0);
+                    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.12 * u_time);
+                    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.09 * u_time);
+
+                    float f = fbm(st + r);
+
+                    vec3 color1 = 0.5 + 0.5 * cos(u_time * 0.2 + vec3(0.0, 2.0, 4.0));
+                    vec3 color2 = 0.5 + 0.5 * cos(u_time * 0.3 + vec3(4.0, 2.0, 0.0));
+                    vec3 darkBg = vec3(0.02, 0.02, 0.04);
+
+                    vec3 color = mix(darkBg, color1, clamp(f * f * 3.5, 0.0, 1.0));
+                    color = mix(color, color2, clamp(length(q), 0.0, 1.0));
+
+                    gl_FragColor = vec4(color * (f * 2.0), 1.0);
+                }
+            `;
+
+            function createShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,  1, -1, -1,  1,
+                -1,  1,  1, -1,  1,  1
+            ]), gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, "position");
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            const resLocation = gl.getUniformLocation(program, "u_resolution");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
+
+            resize();
+
+            function render(time) {
+                gl.uniform2f(resLocation, canvas.width, canvas.height);
+                gl.uniform1f(timeLocation, time * 0.001);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+
+            requestAnimationFrame(render);
+        }
+    </script>
+</body>
+</html>

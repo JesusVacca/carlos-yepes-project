@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Registrar Venta | Vapes Yepes</title>
+    <!-- Bootstrap y FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #030305;
+            --card-bg: rgba(16, 17, 24, 0.95);
+            --border-color: rgba(139, 92, 246, 0.4);
+            --neon-purple: #8b5cf6;
+            --neon-purple-light: #c084fc;
+            --neon-blue: #3b82f6;
+            --text-main: #ffffff;
+            --text-muted: #e2e8f0;
+            --success-color: #22c55e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #webglSmoke {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        h1, h2, h3, h4, h5, h6, p, span, small, label, th, td, a, .btn, .form-control, .form-select {
+            font-weight: 700 !important;
+            color: #ffffff !important;
+        }
+
+        .master-container {
+            width: 100%;
+            max-width: 980px;
+            background: rgba(10, 10, 15, 0.90);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), 0 0 40px rgba(139, 92, 246, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .step-title {
+            font-size: 1.05rem;
+            color: #ffffff !important;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .step-dot {
+            width: 10px; height: 10px; border-radius: 50%; margin-right: 10px;
+            display: inline-block; box-shadow: 0 0 10px currentColor;
+        }
+        .step-1 .step-dot { color: var(--neon-purple); background-color: var(--neon-purple); }
+        .step-2 .step-dot { color: var(--neon-blue); background-color: var(--neon-blue); }
+        .step-3 .step-dot { color: var(--success-color); background-color: var(--success-color); }
+
+        .form-control, .form-select {
+            background: #1a1c29 !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--neon-purple) !important;
+            box-shadow: 0 0 15px rgba(139,92,246,0.5) !important;
+            color: #ffffff !important;
+        }
+
+        .form-select option {
+            background-color: #12131a;
+            color: #ffffff;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .product-display-card {
+            background: #1a1c29;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .prod-img-lg {
+            width: 85px; height: 85px; border-radius: 10px;
+            object-fit: cover; margin-right: 15px; border: 2px solid rgba(255,255,255,0.2);
+        }
+        .prod-name { color: #ffffff !important; font-size: 1.1rem; }
+        .prod-code { color: #cbd5e1 !important; font-size: 0.85rem; }
+        .prod-stock { color: var(--success-color) !important; font-size: 0.85rem; }
+        .prod-price-tag { font-size: 1.2rem; color: var(--neon-purple-light) !important; }
+
+        .payment-option {
+            background: #1a1c29;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px; padding: 15px; text-align: center;
+            color: #cbd5e1 !important; cursor: pointer; transition: all 0.2s;
+        }
+        .payment-option:hover, .payment-option.active {
+            border-color: var(--neon-blue);
+            color: #ffffff !important;
+            background: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+        .payment-option i { font-size: 1.5rem; margin-bottom: 5px; display: block; }
+
+        .btn-complete-sale {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            color: #fff !important; border: none; border-radius: 12px; padding: 16px;
+            width: 100%; font-size: 1.1rem;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5); transition: all 0.2s;
+        }
+        .btn-complete-sale:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.7);
+            color: #fff !important;
+        }
+
+        .text-muted { color: #e2e8f0 !important; }
+        .text-purple { color: var(--neon-purple-light) !important; }
+    </style>
+</head>
+<body>
+
+    <canvas id="webglSmoke"></canvas>
+
+    <div class="master-container">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-50">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-25 text-primary rounded-3 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-cart-shopping fs-4 text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-white mb-0 fs-3">Registrar Venta</h3>
+                    <small class="text-muted">Procesa ventas directas al cliente</small>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'vendedor:panel' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 text-white">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Volver al Panel
+                </a>
+                <a href="{% url 'vendedor:logout' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 text-white">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-danger text-center py-2 rounded-3 small mb-3" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" id="ventaForm">
+            {% csrf_token %}
+            <div class="row g-4">
+
+                <!-- Columna Izquierda -->
+                <div class="col-lg-6">
+                    <div class="glass-card h-100 d-flex flex-column">
+                        <div class="step-1 step-title mb-4">
+                            <span class="step-dot"></span> 1. Selecciona un producto
+                        </div>
+
+                        <!-- BUSCADOR / SELECTOR DE MODELOS -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Buscar dispositivo / modelo:</label>
+                            <input type="text" class="form-control mb-2" placeholder="🔍 Escribe para filtrar modelo..." id="buscadorModelo">
+                            <select class="form-select" id="modeloSelect">
+                                <option value="" selected disabled>-- Selecciona un modelo --</option>
+                            </select>
+                        </div>
+
+                        <!-- SELECTOR DE SABORES (Se activa al elegir el modelo) -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Sabores Disponibles:</label>
+                            <select name="producto" class="form-select form-select-lg" id="productoSelect" required disabled>
+                                <option value="" disabled selected>-- Elige el sabor disponible --</option>
+                                {% for ps in productos_sabores %}
+                                    <option value="{{ ps.id }}"
+                                            data-modelo="{{ ps.producto.nombre }}"
+                                            data-precio="{{ ps.producto.precio }}"
+                                            data-stock="{{ ps.stock_sabor }}"
+                                            data-nombre="{{ ps.sabor.nombre }}"
+                                            data-img="https://via.placeholder.com/150/2a2a3a/fff?text={{ ps.producto.nombre }}">
+                                        {{ ps.sabor.nombre }} — Stock: {{ ps.stock_sabor }} (${{ ps.producto.precio }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="product-display-card mt-auto" id="prodVisualCard" style="display: none;">
+                            <img src="" alt="Producto" class="prod-img-lg" id="vImg">
+                            <div class="flex-grow-1">
+                                <div class="prod-name" id="vName">Nombre del Vape</div>
+                                <div class="prod-code" id="vCode">Sabor: --</div>
+                                <div class="prod-stock" id="vStock">Stock: --</div>
+                            </div>
+                            <div class="prod-price-tag" id="vPrice">$0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha -->
+                <div class="col-lg-6">
+                    <div class="glass-card h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="step-2 step-title mb-4">
+                                <span class="step-dot"></span> 2. Cantidad y precio
+                            </div>
+
+                            <div class="row mb-4 align-items-end">
+                                <div class="col-6">
+                                    <label class="form-label text-muted small mb-1">Cantidad:</label>
+                                    <div class="input-group input-group-lg">
+                                        <button class="btn btn-outline-secondary text-white" type="button" id="btnMinus"><i class="fa-solid fa-minus"></i></button>
+                                        <input type="number" name="cantidad" class="form-control text-center" value="1" min="1" id="inputCantidad" required>
+                                        <button class="btn btn-outline-secondary text-white" type="button" id="btnPlus"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-muted small mb-1">Precio unitario:</label>
+                                    <input type="text" class="form-control form-control-lg text-white" value="$0" readonly id="displayPrecioUnit">
+                                </div>
+                            </div>
+
+                            <div class="mb-4 p-3 rounded-3" style="background: #1a1c29; border: 1px dashed var(--border-color);">
+                                <div class="d-flex justify-content-between text-muted small mb-2">
+                                    <span>Subtotal</span>
+                                    <span id="resSubtotal" class="text-white">$0</span>
+                                </div>
+                                <div class="d-flex justify-content-between text-muted small mb-2">
+                                    <span>Descuento</span>
+                                    <span class="text-white">$0</span>
+                                </div>
+                                <div class="d-flex justify-content-between text-white fs-5 mt-2 pt-2 border-top border-secondary border-opacity-50">
+                                    <span>Total a pagar</span>
+                                    <span class="text-purple" id="resTotal">$0</span>
+                                </div>
+                            </div>
+
+                            <div class="step-3 step-title mb-3">
+                                <span class="step-dot"></span> 3. Método de pago
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-6">
+                                    <div class="payment-option active" id="payEfectivo">
+                                        <i class="fa-solid fa-money-bill-wave text-success"></i> Efectivo
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="payment-option" id="payTarjeta">
+                                        <i class="fa-solid fa-credit-card text-info"></i> Tarjeta
+                                    </div>
+                                </div>
+                                <input type="hidden" name="metodo_pago" value="efectivo" id="metodoPagoInput">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-complete-sale mt-4 shadow-lg">
+                            <i class="fa-solid fa-check-double me-2"></i> COMPLETAR VENTA
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- Script de control dinámico y buscador optimizado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modeloSelect = document.getElementById('modeloSelect');
+            const buscadorModelo = document.getElementById('buscadorModelo');
+            const productoSelect = document.getElementById('productoSelect');
+            const inputCantidad = document.getElementById('inputCantidad');
+            const displayPrecioUnit = document.getElementById('displayPrecioUnit');
+            const resSubtotal = document.getElementById('resSubtotal');
+            const resTotal = document.getElementById('resTotal');
+            const prodVisualCard = document.getElementById('prodVisualCard');
+
+            const vImg = document.getElementById('vImg');
+            const vName = document.getElementById('vName');
+            const vCode = document.getElementById('vCode');
+            const vStock = document.getElementById('vStock');
+            const vPrice = document.getElementById('vPrice');
+
+            // Guardamos todas las opciones reales de sabores originales
+            const todasLasOpcionesSabores = Array.from(productoSelect.options).filter(opt => opt.value !== "");
+
+            // 1. Extraer modelos únicos
+            const modelosUnicos = [...new Set(todasLasOpcionesSabores.map(opt => opt.getAttribute('data-modelo')))];
+
+            function cargarModelos(filtro = '') {
+                modeloSelect.innerHTML = '<option value="" selected disabled>-- Selecciona un modelo --</option>';
+
+                // Si hay texto en el buscador, filtramos tanto por el modelo como si algún sabor coincide
+                modelosUnicos.forEach(modelo => {
+                    const matchModelo = modelo.toLowerCase().includes(filtro.toLowerCase());
+                    // Verificamos si algún sabor de este modelo también coincide con el texto escrito
+                    const matchSaborEnModelo = todasLasOpcionesSabores.some(opt =>
+                        opt.getAttribute('data-modelo') === modelo &&
+                        opt.getAttribute('data-nombre').toLowerCase().includes(filtro.toLowerCase())
+                    );
+
+                    if (matchModelo || matchSaborEnModelo) {
+                        let opt = document.createElement('option');
+                        opt.value = modelo;
+                        opt.textContent = modelo;
+                        modeloSelect.appendChild(opt);
+                    }
+                });
+            }
+            cargarModelos();
+
+            // 2. Buscador en tiempo real
+            buscadorModelo.addEventListener('input', function() {
+                const textoFiltro = this.value.trim();
+                cargarModelos(textoFiltro);
+                productoSelect.innerHTML = '<option value="" disabled selected>-- Elige el sabor disponible --</option>';
+                productoSelect.disabled = true;
+                prodVisualCard.style.display = 'none';
+
+                // Si el usuario escribe exactamente un modelo o coincide de forma única, podemos autoseleccionarlo si queremos,
+                // pero dejarlo abierto da flexibilidad.
+            });
+
+            // 3. Al seleccionar un modelo, cargar sus sabores
+            modeloSelect.addEventListener('change', function() {
+                const modeloSeleccionado = this.value;
+                const filtroActual = buscadorModelo.value.toLowerCase().trim();
+
+                productoSelect.innerHTML = '<option value="" disabled selected>-- Elige el sabor disponible --</option>';
+
+                let primerCoincidencia = null;
+
+                todasLasOpcionesSabores.forEach(opt => {
+                    if (opt.getAttribute('data-modelo') === modeloSeleccionado) {
+                        const clone = opt.cloneNode(true);
+                        // Si el usuario escribió un sabor específico en el buscador, podemos destacarlo o filtrarlo
+                        productoSelect.appendChild(clone);
+                        if(!primerCoincidencia) primerCoincidencia = clone;
+                    }
+                });
+
+                productoSelect.disabled = false;
+                prodVisualCard.style.display = 'none';
+            });
+
+            // 4. Actualizar cálculos y tarjeta visual
+            function actualizarCalculos() {
+                const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+                if (!selectedOption || !selectedOption.value) {
+                    prodVisualCard.style.display = 'none';
+                    return;
+                }
+
+                const precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+                const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+                const nombreModelo = selectedOption.getAttribute('data-modelo');
+                const nombreSabor = selectedOption.getAttribute('data-nombre');
+                const img = selectedOption.getAttribute('data-img');
+
+                let cantidad = parseInt(inputCantidad.value) || 1;
+                if (cantidad > stock) {
+                    cantidad = stock;
+                    inputCantidad.value = stock;
+                }
+
+                prodVisualCard.style.display = 'flex';
+                vImg.src = img;
+                vName.textContent = nombreModelo;
+                vCode.textContent = 'Sabor: ' + nombreSabor;
+                vStock.textContent = 'Stock disponible: ' + stock;
+                vPrice.textContent = '$' + precio.toLocaleString();
+
+                displayPrecioUnit.value = '$' + precio.toLocaleString();
+                let subtotal = precio * cantidad;
+                resSubtotal.textContent = '$' + subtotal.toLocaleString();
+                resTotal.textContent = '$' + subtotal.toLocaleString();
+            }
+
+            productoSelect.addEventListener('change', actualizarCalculos);
+            inputCantidad.addEventListener('input', actualizarCalculos);
+
+            document.getElementById('btnPlus').addEventListener('click', function() {
+                if(!productoSelect.disabled && productoSelect.value) {
+                    inputCantidad.value = parseInt(inputCantidad.value || 0) + 1;
+                    actualizarCalculos();
+                }
+            });
+
+            document.getElementById('btnMinus').addEventListener('click', function() {
+                let val = parseInt(inputCantidad.value || 1);
+                if (val > 1) {
+                    inputCantidad.value = val - 1;
+                    actualizarCalculos();
+                }
+            });
+
+            const payEfectivo = document.getElementById('payEfectivo');
+            const payTarjeta = document.getElementById('payTarjeta');
+            const metodoPagoInput = document.getElementById('metodoPagoInput');
+
+            payEfectivo.addEventListener('click', function() {
+                payEfectivo.classList.add('active');
+                payTarjeta.classList.remove('active');
+                metodoPagoInput.value = 'efectivo';
+            });
+
+            payTarjeta.addEventListener('click', function() {
+                payTarjeta.classList.add('active');
+                payEfectivo.classList.remove('active');
+                metodoPagoInput.value = 'tarjeta';
+            });
+        });
+
+        // WebGL Humo Neón
+        const canvas = document.getElementById('webglSmoke');
+        const gl = canvas.getContext('webgl', { alpha: false, preserveDrawingBuffer: false }) || canvas.getContext('experimental-webgl');
+
+        if (gl) {
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', resize);
+
+            const vsSource = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision mediump float;
+                uniform vec2 u_resolution;
+                uniform float u_time;
+
+                float hash(vec2 p) {
+                    p = fract(p * vec2(123.34, 456.21));
+                    p += dot(p, p + 45.32);
+                    return fract(p.x * p.y);
+                }
+
+                float noise(vec2 p) {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    f = f * f * (3.0 - 2.0 * f);
+                    float a = hash(i);
+                    float b = hash(i + vec2(1.0, 0.0));
+                    float c = hash(i + vec2(0.0, 1.0));
+                    float d = hash(i + vec2(1.0, 1.0));
+                    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                }
+
+                float fbm(vec2 p) {
+                    float v = 0.0;
+                    float a = 0.5;
+                    vec2 shift = vec2(100.0);
+                    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+                    for (int i = 0; i < 5; ++i) {
+                        v += a * noise(p);
+                        p = rot * p * 2.0 + shift;
+                        a *= 0.5;
+                    }
+                    return v;
+                }
+
+                void main() {
+                    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                    st.x *= u_resolution.x / u_resolution.y;
+
+                    vec2 q = vec2(0.0);
+                    q.x = fbm(st + 0.04 * u_time);
+                    q.y = fbm(st + vec2(1.0));
+
+                    vec2 r = vec2(0.0);
+                    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.12 * u_time);
+                    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.09 * u_time);
+
+                    float f = fbm(st + r);
+
+                    vec3 color1 = 0.5 + 0.5 * cos(u_time * 0.2 + vec3(0.0, 2.0, 4.0));
+                    vec3 color2 = 0.5 + 0.5 * cos(u_time * 0.3 + vec3(4.0, 2.0, 0.0));
+                    vec3 darkBg = vec3(0.02, 0.02, 0.04);
+
+                    vec3 color = mix(darkBg, color1, clamp(f * f * 3.5, 0.0, 1.0));
+                    color = mix(color, color2, clamp(length(q), 0.0, 1.0));
+
+                    gl_FragColor = vec4(color * (f * 2.0), 1.0);
+                }
+            `;
+
+            function createShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,  1, -1, -1,  1,
+                -1,  1,  1, -1,  1,  1
+            ]), gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, "position");
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            const resLocation = gl.getUniformLocation(program, "u_resolution");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
+
+            resize();
+
+            function render(time) {
+                gl.uniform2f(resLocation, canvas.width, canvas.height);
+                gl.uniform1f(timeLocation, time * 0.001);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+
+            requestAnimationFrame(render);
+        }
+    </script>
+</body>
+</html>

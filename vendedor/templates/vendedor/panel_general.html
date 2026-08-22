@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Panel General - Vapes Yepes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #030305;
+            --card-bg: rgba(18, 19, 26, 0.75);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --neon-purple: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* FONDO HUMO NEÓN GLSL */
+        #webglSmoke {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .navbar-custom {
+            background: rgba(18, 19, 26, 0.75) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 25px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 25px;
+        }
+
+        /* Tarjeta individual de producto */
+        .product-sub-card {
+            background: rgba(25, 27, 38, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-sub-card:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Asegurar visibilidad de todos los textos */
+        h1, h2, h3, h4, h5, h6, p, span, small, label, a {
+            color: #ffffff !important;
+        }
+
+        .text-custom-muted {
+            color: #cbd5e1 !important;
+        }
+
+        .form-label {
+            color: #e2e8f0 !important;
+            font-weight: 500;
+        }
+
+        .form-control, .form-select {
+            background: #1a1c29 !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--neon-purple) !important;
+            box-shadow: 0 0 15px rgba(139,92,246,0.5) !important;
+            color: #ffffff !important;
+        }
+
+        .form-select option {
+            background-color: #12131a;
+            color: #ffffff;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .btn-modern {
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .product-img {
+            width: 75px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .sabor-row-item {
+            background: rgba(18, 19, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS HUMO NEÓN GLSL -->
+    <canvas id="webglSmoke"></canvas>
+
+    <nav class="navbar navbar-custom shadow-sm mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{% url 'vendedor:menu_principal' %}">
+                <i class="fa-solid fa-bolt me-2 text-warning"></i> VAPES YEPES - Panel de Control Unificado
+            </a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="{% url 'vendedor:crear_producto' %}" class="btn btn-warning fw-bold text-dark btn-sm rounded-pill px-3 shadow">
+                    <i class="fa-solid fa-plus me-1"></i> Crear Producto
+                </a>
+                <a href="{% url 'vendedor:menu_principal' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-house me-1"></i> Inicio
+                </a>
+                <a href="{% url 'vendedor:panel' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-cash-register me-1"></i> Ir a Ventas
+                </a>
+                <a href="/admin/logout/" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4" style="position: relative; z-index: 1;">
+        <div class="row g-4">
+            <!-- Columna Izquierda: Ingreso de Mercancía -->
+            <div class="col-md-4">
+                <div class="glass-card h-100">
+                    <h4 class="mb-4 fw-bold fs-5">
+                        <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i> Ingreso de Stock
+                    </h4>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small">Producto</label>
+                            <select name="producto_id" class="form-select" required>
+                                <option value="">-- Elige producto --</option>
+                                {% for p in productos %}
+                                    <option value="{{ p.id }}">{{ p.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Sabor</label>
+                            <select name="sabor_id" class="form-select" required>
+                                <option value="">-- Elige sabor --</option>
+                                {% for p in productos %}
+                                    {% for ps in p.productosabor_set.all %}
+                                        <option value="{{ ps.sabor.id }}">{{ ps.sabor.nombre }} ({{ p.nombre }})</option>
+                                    {% endfor %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small">Cantidad a sumar</label>
+                            <input type="number" name="cantidad" class="form-control text-center fw-bold" min="1" value="1" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-modern w-100 text-white shadow">
+                            <i class="fa-solid fa-plus me-2"></i> Registrar Ingreso
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Inventario General en Tarjetas Únicas -->
+            <div class="col-md-8">
+                <div class="glass-card h-100">
+                    <h4 class="mb-4 fw-bold fs-5">
+                        <i class="fa-solid fa-chart-bar me-2 text-info"></i> Inventario General por Sabores
+                    </h4>
+
+                    <div class="row g-3">
+                        {% for p in productos %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="product-sub-card">
+                                    <div>
+                                        <!-- Cabecera de la tarjeta con imagen y nombre -->
+                                        <div class="d-flex align-items-center mb-3">
+                                            {% if p.imagen %}
+                                                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="product-img me-3">
+                                            {% else %}
+                                                <div class="bg-primary bg-opacity-25 text-info rounded-3 d-flex align-items-center justify-content-center me-3 product-img flex-shrink-0">
+                                                    <i class="fa-solid fa-box fs-4"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div style="overflow: hidden; width: 100%;">
+                                                <span class="fw-bold fs-6 text-white d-block text-truncate">{{ p.nombre }}</span>
+                                                <span class="text-warning small fw-bold">${{ p.precio }}</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Botones de Editar y Eliminar -->
+                                        <div class="mb-3 d-flex justify-content-end gap-1">
+                                            <a href="{% url 'vendedor:editar_producto' p.id %}" class="btn btn-outline-warning btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem;">
+                                                <i class="fa-solid fa-pen-to-square me-1"></i> Editar
+                                            </a>
+                                            <a href="{% url 'vendedor:eliminar_producto' p.id %}" class="btn btn-outline-danger btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem;" onclick="return confirm('¿Estás seguro de eliminar este producto por completo?');">
+                                                <i class="fa-solid fa-trash me-1"></i> Eliminar
+                                            </a>
+                                        </div>
+
+                                        <!-- Lista de Sabores asociados al producto dentro de la misma tarjeta -->
+                                        <div class="mb-3" style="max-height: 130px; overflow-y: auto;">
+                                            {% if p.productosabor_set.all %}
+                                                {% for ps in p.productosabor_set.all %}
+                                                    <div class="sabor-row-item">
+                                                        <small class="text-truncate text-white" style="max-width: 65%;">
+                                                            <i class="fa-solid fa-droplet text-warning me-1"></i>{{ ps.sabor.nombre }}
+                                                        </small>
+                                                        <span class="badge bg-primary bg-opacity-25 text-info px-2 py-1" style="font-size: 0.75rem;">
+                                                            {{ ps.stock_sabor }} uds
+                                                        </span>
+                                                    </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <small class="text-danger d-block text-center py-2">
+                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Sin sabores asignados
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Stock Total General del Producto -->
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                                        <span class="text-custom-muted small">Stock Total:</span>
+                                        <span class="badge bg-success bg-opacity-25 text-success px-3 py-1.5 fw-bold fs-6">{{ p.stock }} uds</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12">
+                                <div class="product-sub-card text-center py-4">
+                                    <p class="text-custom-muted small mb-0">No hay productos registrados en el sistema.</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- GLSL CANVAS SHADER PARA EL EFECTO HUMO NEÓN -->
+    <script>
+        const canvas = document.getElementById('webglSmoke');
+        const gl = canvas.getContext('webgl', { alpha: false, preserveDrawingBuffer: false }) || canvas.getContext('experimental-webgl');
+
+        if (gl) {
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', resize);
+
+            const vsSource = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision mediump float;
+                uniform vec2 u_resolution;
+                uniform float u_time;
+
+                float hash(vec2 p) {
+                    p = fract(p * vec2(123.34, 456.21));
+                    p += dot(p, p + 45.32);
+                    return fract(p.x * p.y);
+                }
+
+                float noise(vec2 p) {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    f = f * f * (3.0 - 2.0 * f);
+                    float a = hash(i);
+                    float b = hash(i + vec2(1.0, 0.0));
+                    float c = hash(i + vec2(0.0, 1.0));
+                    float d = hash(i + vec2(1.0, 1.0));
+                    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                }
+
+                float fbm(vec2 p) {
+                    float v = 0.0;
+                    float a = 0.5;
+                    vec2 shift = vec2(100.0);
+                    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+                    for (int i = 0; i < 5; ++i) {
+                        v += a * noise(p);
+                        p = rot * p * 2.0 + shift;
+                        a *= 0.5;
+                    }
+                    return v;
+                }
+
+                void main() {
+                    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                    st.x *= u_resolution.x / u_resolution.y;
+
+                    vec2 q = vec2(0.0);
+                    q.x = fbm(st + 0.04 * u_time);
+                    q.y = fbm(st + vec2(1.0));
+
+                    vec2 r = vec2(0.0);
+                    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.12 * u_time);
+                    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.09 * u_time);
+
+                    float f = fbm(st + r);
+
+                    vec3 color1 = 0.5 + 0.5 * cos(u_time * 0.2 + vec3(0.0, 2.0, 4.0));
+                    vec3 color2 = 0.5 + 0.5 * cos(u_time * 0.3 + vec3(4.0, 2.0, 0.0));
+                    vec3 darkBg = vec3(0.02, 0.02, 0.04);
+
+                    vec3 color = mix(darkBg, color1, clamp(f * f * 3.5, 0.0, 1.0));
+                    color = mix(color, color2, clamp(length(q), 0.0, 1.0));
+
+                    gl_FragColor = vec4(color * (f * 2.0), 1.0);
+                }
+            `;
+
+            function createShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,  1, -1, -1,  1,
+                -1,  1,  1, -1,  1,  1
+            ]), gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, "position");
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            const resLocation = gl.getUniformLocation(program, "u_resolution");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
+
+            resize();
+
+            function render(time) {
+                gl.uniform2f(resLocation, canvas.width, canvas.height);
+                gl.uniform1f(timeLocation, time * 0.001);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+
+            requestAnimationFrame(render);
+        }
+    </script>
+</body>
+</html>

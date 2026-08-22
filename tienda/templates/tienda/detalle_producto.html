@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ producto.nombre }} | Vapes Yepes</title>
+
+    <style>
+        /* =====================================================
+           RESET & ESTILOS GLOBALES
+        ===================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #030305;
+            color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* =====================================================
+           FONDO HUMO NEÓN GLSL (FIXED FULLSCREEN)
+        ===================================================== */
+        #webglSmoke {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        /* =====================================================
+           NAVBAR
+        ===================================================== */
+        .navbar {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8%;
+            background: rgba(3, 3, 5, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+        }
+
+        .logo span {
+            color: #a855f7;
+        }
+
+        .btn-back-nav {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-back-nav:hover {
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* =====================================================
+           CONTENEDOR DETALLE PRODUCTO
+        ===================================================== */
+        .contenedor {
+            max-width: 1100px;
+            margin: 50px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            z-index: 1;
+        }
+
+        /* CARD IMAGEN */
+        .card-imagen {
+            background: rgba(15, 12, 28, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 20px;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transition: 0.3s ease;
+        }
+
+        .card-imagen:hover {
+            border-color: rgba(168, 85, 247, 0.6);
+            box-shadow: 0 25px 60px rgba(168, 85, 247, 0.25);
+        }
+
+        .card-imagen img {
+            max-width: 85%;
+            max-height: 85%;
+            object-fit: contain;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.7));
+            transition: transform 0.4s ease, opacity 0.3s ease;
+        }
+
+        .card-imagen:hover img {
+            transform: scale(1.04);
+        }
+
+        .badge-destacado {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* CARD INFORMACIÓN */
+        .info-card {
+            background: rgba(15, 12, 28, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .info-header {
+            margin-bottom: 20px;
+        }
+
+        .info-header h1 {
+            font-size: 38px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            background: linear-gradient(180deg, #ffffff 0%, #e9d5ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.disponible {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .status-badge.agotado {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .descripcion {
+            color: #9ca3af;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .precio-box {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .precio-label {
+            color: #6b7280;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .precio {
+            font-size: 34px;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        /* SABORES */
+        .sabores-section {
+            margin-bottom: 30px;
+        }
+
+        .sabores-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #c084fc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .sabores-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sabor-item {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            transition: 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sabor-item:hover {
+            background: rgba(168, 85, 247, 0.35);
+            transform: translateY(-2px);
+        }
+
+        /* ESTADO ACTIVO PARA SABOR SELECCIONADO */
+        .sabor-item.activo {
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+            transform: scale(1.05);
+        }
+
+        .sabor-stock {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            color: #cbd5e1;
+        }
+
+        .sin-sabores {
+            color: #6b7280;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        /* ACCIONES Y BOTONES */
+        .acciones {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-whatsapp {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-whatsapp:hover {
+            box-shadow: 0 0 30px rgba(37, 211, 102, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-volver {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #d1d5db;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-volver:hover {
+            border-color: #a855f7;
+            color: #ffffff;
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        /* FOOTER */
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(2, 2, 3, 0.85);
+            backdrop-filter: blur(12px);
+            margin-top: auto;
+        }
+
+        footer h3 {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        footer p {
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 850px) {
+            .contenedor {
+                grid-template-columns: 1fr;
+                margin: 25px auto;
+            }
+            .card-imagen {
+                height: 380px;
+            }
+            .info-card {
+                padding: 25px;
+            }
+            .info-header h1 {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- CANVAS HUMO NEÓN -->
+    <canvas id="webglSmoke"></canvas>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo">VAPES <span>YEPES</span></a>
+        <a href="/" class="btn-back-nav">
+            ← Volver al catálogo
+        </a>
+    </nav>
+
+    <!-- DETALLE DEL PRODUCTO -->
+    <div class="contenedor">
+
+        <!-- CARD IMAGEN -->
+        <div class="card-imagen">
+            <span class="badge-destacado">DESTACADO</span>
+            {% if producto.imagen %}
+                <img id="imagenPrincipal" src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" data-default="{{ producto.imagen.url }}">
+            {% else %}
+                <img id="imagenPrincipal" src="" alt="{{ producto.nombre }}" data-default="" style="display:none;">
+                <svg id="svgSinImagen" width="150" height="200" viewBox="0 0 150 200" fill="none">
+                    <rect x="35" y="50" width="80" height="130" rx="20" fill="#1f2937" stroke="#a855f7" stroke-width="2"/>
+                    <text x="75" y="115" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle">SIN IMAGEN</text>
+                </svg>
+            {% endif %}
+        </div>
+
+        <!-- CARD INFORMACIÓN -->
+        <div class="info-card">
+
+            <div class="info-header">
+                <h1>{{ producto.nombre }}</h1>
+                {% if producto.stock > 0 %}
+                    <span class="status-badge disponible">Disponible · {{ producto.stock }} unidades</span>
+                {% else %}
+                    <span class="status-badge agotado">Agotado</span>
+                {% endif %}
+            </div>
+
+            <p class="descripcion">
+                {{ producto.descripcion|default:"Experimenta la máxima calidad y sabor con este vaper premium disponible en nuestro catálogo." }}
+            </p>
+
+            <div class="precio-box">
+                <span class="precio-label">Precio:</span>
+                <span class="precio">${{ producto.precio|floatformat:0 }}</span>
+            </div>
+
+            <!-- SABORES DISPONIBLES CON SU STOCK E IMAGEN DINÁMICA -->
+            <div class="sabores-section">
+                <div class="sabores-title">⚡ Selecciona tu sabor</div>
+                <div class="sabores-list">
+                    {% for ps in producto.productosabor_set.all %}
+                        <button type="button"
+                                class="sabor-item btn-sabor"
+                                data-imagen="{% if ps.imagen_sabor %}{{ ps.imagen_sabor.url }}{% endif %}"
+                                onclick="seleccionarSabor('{{ ps.sabor.nombre }}', this)">
+                            🧪 {{ ps.sabor.nombre }} <span class="sabor-stock">{{ ps.stock_sabor }} uds</span>
+                        </button>
+                    {% empty %}
+                        <span class="sin-sabores">No hay sabores especificados para este producto.</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ACCIONES -->
+            <div class="acciones">
+                <a id="btnWhatsApp"
+                   href="#"
+                   target="_blank"
+                   class="btn-whatsapp">
+                    📲 PEDIR POR WHATSAPP
+                </a>
+                <a href="/" class="btn-volver">← Volver al catálogo principal</a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <h3>VAPES YEPES</h3>
+        <p>Catálogo digital · Calidad · Estilo · Experiencia</p>
+    </footer>
+
+    <!-- SCRIPT SELECCIÓN DE SABOR, IMAGEN DINÁMICA Y WHATSAPP -->
+    <script>
+        let saborSeleccionado = "";
+        const productoNombre = "{{ producto.nombre }}";
+        const productoPrecio = "${{ producto.precio|floatformat:0 }}";
+        const numeroTelefono = "573106019715";
+
+        function seleccionarSabor(nombreSabor, elemento) {
+            // Desmarcar todos los botones de sabor
+            document.querySelectorAll('.btn-sabor').forEach(btn => {
+                btn.classList.remove('activo');
+            });
+
+            // Marcar el botón presionado
+            elemento.classList.add('activo');
+            saborSeleccionado = nombreSabor;
+
+            // Cambiar imagen dinámica solo si el sabor seleccionado tiene una foto propia cargada
+            const imgUrl = elemento.getAttribute('data-imagen');
+            const imgPrincipal = document.getElementById('imagenPrincipal');
+            const svgSinImagen = document.getElementById('svgSinImagen');
+
+            if (imgPrincipal) {
+                if (imgUrl && imgUrl.trim() !== "") {
+                    // Si el sabor tiene imagen propia, la muestra
+                    imgPrincipal.src = imgUrl;
+                    imgPrincipal.style.display = "block";
+                    if (svgSinImagen) svgSinImagen.style.display = "none";
+                } else {
+                    // Si el sabor NO tiene imagen propia, regresa a la imagen general del producto
+                    const imgDefault = imgPrincipal.getAttribute('data-default');
+                    if (imgDefault && imgDefault.trim() !== "") {
+                        imgPrincipal.src = imgDefault;
+                        imgPrincipal.style.display = "block";
+                        if (svgSinImagen) svgSinImagen.style.display = "none";
+                    } else {
+                        imgPrincipal.style.display = "none";
+                        if (svgSinImagen) svgSinImagen.style.display = "block";
+                    }
+                }
+            }
+
+            // Actualizar el link de WhatsApp con el sabor seleccionado
+            const mensaje = `Hola Vapes Yepes, estoy interesado en comprar: ${productoNombre} (Sabor: ${saborSeleccionado}) - Precio: ${productoPrecio}`;
+            const url = `https://wa.me/${numeroTelefono}?text=${encodeURIComponent(mensaje)}`;
+
+            document.getElementById('btnWhatsApp').setAttribute('href', url);
+        }
+
+        // Al cargar la página, configuramos el link de WhatsApp base por si aún no selecciona nada
+        window.addEventListener('DOMContentLoaded', () => {
+            const mensaje = `Hola Vapes Yepes, estoy interesado en comprar: ${productoNombre} - Precio: ${productoPrecio}`;
+            const url = `https://wa.me/${numeroTelefono}?text=${encodeURIComponent(mensaje)}`;
+            document.getElementById('btnWhatsApp').setAttribute('href', url);
+        });
+    </script>
+
+    <!-- SHADER HUMO GLSL -->
+    <script>
+        const canvas = document.getElementById('webglSmoke');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+        if (gl) {
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', resize);
+
+            const vsSource = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision mediump float;
+                uniform vec2 u_resolution;
+                uniform float u_time;
+
+                float hash(vec2 p) {
+                    p = fract(p * vec2(123.34, 456.21));
+                    p += dot(p, p + 45.32);
+                    return fract(p.x * p.y);
+                }
+
+                float noise(vec2 p) {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    f = f * f * (3.0 - 2.0 * f);
+                    float a = hash(i);
+                    float b = hash(i + vec2(1.0, 0.0));
+                    float c = hash(i + vec2(0.0, 1.0));
+                    float d = hash(i + vec2(1.0, 1.0));
+                    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                }
+
+                float fbm(vec2 p) {
+                    float v = 0.0;
+                    float a = 0.5;
+                    vec2 shift = vec2(100.0);
+                    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+                    for (int i = 0; i < 5; ++i) {
+                        v += a * noise(p);
+                        p = rot * p * 2.0 + shift;
+                        a *= 0.5;
+                    }
+                    return v;
+                }
+
+                void main() {
+                    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                    st.x *= u_resolution.x / u_resolution.y;
+
+                    vec2 q = vec2(0.0);
+                    q.x = fbm(st + 0.04 * u_time);
+                    q.y = fbm(st + vec2(1.0));
+
+                    vec2 r = vec2(0.0);
+                    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.12 * u_time);
+                    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.09 * u_time);
+
+                    float f = fbm(st + r);
+
+                    vec3 purple = vec3(0.5, 0.12, 0.9);
+                    vec3 blue = vec3(0.12, 0.4, 0.95);
+                    vec3 darkBg = vec3(0.02, 0.02, 0.04);
+
+                    vec3 color = mix(darkBg, purple, clamp(f * f * 3.5, 0.0, 1.0));
+                    color = mix(color, blue, clamp(length(q), 0.0, 1.0));
+
+                    float alpha = smoothstep(0.05, 0.85, f) * 0.9;
+
+                    gl_FragColor = vec4(color * (f * 2.0), alpha);
+                }
+            `;
+
+            function createShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,  1, -1, -1,  1,
+                -1,  1,  1, -1,  1,  1
+            ]), gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, "position");
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            const resLocation = gl.getUniformLocation(program, "u_resolution");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
+
+            resize();
+
+            function render(time) {
+                gl.uniform2f(resLocation, canvas.width, canvas.height);
+                gl.uniform1f(timeLocation, time * 0.001);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+
+            requestAnimationFrame(render);
+        }
+    </script>
+</body>
+</html>

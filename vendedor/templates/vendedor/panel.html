@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Panel de Vendedor | Vapes Yepes</title>
+    <!-- Bootstrap y FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --card-bg: rgba(18, 19, 26, 0.65);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --neon-purple: #8b5cf6;
+            --neon-purple-light: #c084fc;
+            --neon-blue: #3b82f6;
+            --text-main: #ffffff;
+            --text-muted: #cbd5e1;
+            --success-color: #22c55e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #030305;
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 30px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* =====================================================
+           FONDO HUMO NEÓN GLSL (ANIMADO ESTILO CANVA)
+        ===================================================== */
+        #webglSmoke {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL CON EFECTO VIDRIO (GLASSMORPHISM) --- */
+        .dashboard-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: rgba(11, 12, 16, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 50px rgba(139, 92, 246, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- CABECERA --- */
+        .header-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+        .user-avatar {
+            width: 50px; height: 50px;
+            background: rgba(139, 92, 246, 0.25);
+            color: var(--neon-purple);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 12px;
+        }
+
+        /* FORZAR NEGRITAS EN TODO EL TEXTO DEL PANEL */
+        h1, h2, h3, h4, h5, h6, p, span, small, th, td, a, .btn {
+            font-weight: 700 !important;
+        }
+
+        /* --- TARJETAS INTERNAS --- */
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            height: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        .stat-card:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+
+        /* --- BOTÓN CTA NEÓN --- */
+        .btn-neon-action {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 1rem;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-neon-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.6);
+            color: #fff;
+        }
+
+        /* --- TABLA MODERNA --- */
+        .table-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table-custom {
+            color: var(--text-main) !important;
+            background: transparent !important;
+            margin-bottom: 0 !important;
+        }
+        .table-custom th {
+            background: transparent !important;
+            color: var(--text-muted) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 15px !important;
+        }
+        .table-custom td {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+            padding: 16px 15px !important;
+            vertical-align: middle;
+        }
+        .table-custom tr:hover td {
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .text-success-neon { color: var(--success-color) !important; }
+        .text-muted { color: var(--text-muted) !important; }
+        .text-purple-light { color: var(--neon-purple-light) !important; }
+
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS HUMO NEÓN GLSL (EL MISMO EFECTO DE TU OTRA VISTA) -->
+    <canvas id="webglSmoke"></canvas>
+
+    <div class="dashboard-container">
+
+        <!-- CABECERA DEL PANEL -->
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="user-avatar">
+                    <i class="fa-solid fa-user fs-5"></i>
+                </div>
+                <div>
+                    <h2 class="text-white mb-0">Panel de Vendedor</h2>
+                    <p class="text-muted mb-0">Bienvenido, gestiona tus ventas y registros diarios</p>
+                </div>
+            </div>
+            <a href="{% url 'vendedor:logout' %}" class="btn btn-outline-danger rounded-pill px-4 py-2">
+                <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
+            </a>
+        </div>
+
+        <!-- FILA DE ACCESOS Y ESTADÍSTICAS -->
+        <div class="row g-4 mb-5">
+
+            <!-- TARJETA: ¿NUEVA VENTA? -->
+            <div class="col-lg-6">
+                <div class="stat-card d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="bg-primary bg-opacity-25 text-primary rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px;">
+                                <i class="fa-solid fa-cash-register fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-white mb-1">¿Nueva Venta?</h5>
+                                <small class="text-muted">Registra transacciones de forma rápida</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'vendedor:registrar_venta' %}" class="btn-neon-action w-100">
+                            <i class="fa-solid fa-plus-circle me-2"></i> Registrar Nueva Venta
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA: VENTAS DE HOY -->
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="text-muted small text-uppercase">Ventas Hoy</span>
+                        <div class="bg-info bg-opacity-25 text-info rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 36px; height: 36px;">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-white display-5 mb-0">{{ cantidad_ventas_hoy|default:"0" }}</h2>
+                        <small class="text-muted">Transacciones completadas</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA: INGRESOS DE HOY -->
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="text-muted small text-uppercase">Ingresos Hoy</span>
+                        <div class="bg-success bg-opacity-25 text-success rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 36px; height: 36px;">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-success-neon display-5 mb-0">${{ total_ventas_hoy|default:"0"|floatformat:0 }}</h2>
+                        <small class="text-muted">Total recaudado hoy</small>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SECCIÓN: VENTAS RECIENTES -->
+        <div class="table-section overflow-hidden">
+            <div class="table-header d-flex justify-content-between align-items-center">
+                <h5 class="text-white mb-0">
+                    <i class="fa-solid fa-clock-rotate-left me-2 text-purple-light"></i> Ventas Recientes
+                </h5>
+                <span class="text-muted small">Últimas transacciones</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID Venta</th>
+                            <th>Vendedor</th>
+                            <th>Total</th>
+                            <th>Fecha</th>
+                            <th class="text-end">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for venta in ventas_recientes %}
+                            <tr>
+                                <td class="text-purple-light">#{{ venta.id }}</td>
+                                <td>{{ venta.vendedor.username|default:"vendedor" }}</td>
+                                <td class="text-success-neon">${{ venta.total|floatformat:0 }}</td>
+                                <td class="text-muted small">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                                <td class="text-end">
+                                    <span class="badge bg-success bg-opacity-25 text-success px-2 py-1">Completado</span>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <div class="mb-2"><i class="fa-solid fa-box-open fs-2 text-secondary opacity-50"></i></div>
+                                    <span>No hay ventas registradas todavía.</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT DE WEBGL PARA EL HUMO NEÓN ANIMADO -->
+    <script>
+        const canvas = document.getElementById('webglSmoke');
+        const gl = canvas.getContext('webgl', { alpha: false, preserveDrawingBuffer: false }) || canvas.getContext('experimental-webgl');
+
+        if (gl) {
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', resize);
+
+            const vsSource = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision mediump float;
+                uniform vec2 u_resolution;
+                uniform float u_time;
+
+                float hash(vec2 p) {
+                    p = fract(p * vec2(123.34, 456.21));
+                    p += dot(p, p + 45.32);
+                    return fract(p.x * p.y);
+                }
+
+                float noise(vec2 p) {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    f = f * f * (3.0 - 2.0 * f);
+                    float a = hash(i);
+                    float b = hash(i + vec2(1.0, 0.0));
+                    float c = hash(i + vec2(0.0, 1.0));
+                    float d = hash(i + vec2(1.0, 1.0));
+                    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                }
+
+                float fbm(vec2 p) {
+                    float v = 0.0;
+                    float a = 0.5;
+                    vec2 shift = vec2(100.0);
+                    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+                    for (int i = 0; i < 5; ++i) {
+                        v += a * noise(p);
+                        p = rot * p * 2.0 + shift;
+                        a *= 0.5;
+                    }
+                    return v;
+                }
+
+                void main() {
+                    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                    st.x *= u_resolution.x / u_resolution.y;
+
+                    vec2 q = vec2(0.0);
+                    q.x = fbm(st + 0.04 * u_time);
+                    q.y = fbm(st + vec2(1.0));
+
+                    vec2 r = vec2(0.0);
+                    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.12 * u_time);
+                    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.09 * u_time);
+
+                    float f = fbm(st + r);
+
+                    vec3 color1 = 0.5 + 0.5 * cos(u_time * 0.2 + vec3(0.0, 2.0, 4.0));
+                    vec3 color2 = 0.5 + 0.5 * cos(u_time * 0.3 + vec3(4.0, 2.0, 0.0));
+                    vec3 darkBg = vec3(0.02, 0.02, 0.04);
+
+                    vec3 color = mix(darkBg, color1, clamp(f * f * 3.5, 0.0, 1.0));
+                    color = mix(color, color2, clamp(length(q), 0.0, 1.0));
+
+                    gl_FragColor = vec4(color * (f * 2.0), 1.0);
+                }
+            `;
+
+            function createShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,  1, -1, -1,  1,
+                -1,  1,  1, -1,  1,  1
+            ]), gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, "position");
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            const resLocation = gl.getUniformLocation(program, "u_resolution");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
+
+            resize();
+
+            function render(time) {
+                gl.uniform2f(resLocation, canvas.width, canvas.height);
+                gl.uniform1f(timeLocation, time * 0.001);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+
+            requestAnimationFrame(render);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Editar Producto - Vapes Yepes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #030305;
+            --card-bg: rgba(18, 19, 26, 0.75);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --neon-purple: #8b5cf6;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #webglSmoke {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+        }
+
+        h1, h2, h3, h4, h5, h6, p, span, small, label, a {
+            color: #ffffff !important;
+        }
+
+        .form-label {
+            color: #cbd5e1 !important;
+            font-weight: 500;
+        }
+
+        .form-control, .form-select {
+            background: #1a1c29 !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .form-control:-webkit-autofill,
+        .form-control:-webkit-autofill:hover,
+        .form-control:-webkit-autofill:focus {
+            -webkit-text-fill-color: #ffffff !important;
+            -webkit-box-shadow: 0 0 0px 1000px #1a1c29 inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--neon-purple) !important;
+            box-shadow: 0 0 15px rgba(139,92,246,0.5) !important;
+            color: #ffffff !important;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1;
+        }
+
+        .sabor-item-card {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 12px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS HUMO NEÓN GLSL -->
+    <canvas id="webglSmoke"></canvas>
+
+    <div class="container my-5" style="position: relative; z-index: 1;">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold fs-4 mb-0">
+                            <i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Editar Producto: {{ producto.nombre }}
+                        </h3>
+                        <a href="{% url 'vendedor:panel_general' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Volver
+                        </a>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Nombre -->
+                        <div class="mb-3">
+                            <label class="form-label small">Nombre del Producto</label>
+                            <input type="text" name="nombre" class="form-control" value="{{ producto.nombre }}" required>
+                        </div>
+
+                        <!-- Precio -->
+                        <div class="mb-3">
+                            <label class="form-label small">Precio ($)</label>
+                            <input type="number" step="0.01" name="precio" class="form-control" value="{{ producto.precio }}" required>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+                            <label class="form-label small">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="3">{{ producto.descripcion }}</textarea>
+                        </div>
+
+                        <!-- Imagen -->
+                        <div class="mb-4">
+                            <label class="form-label small">Cambiar Imagen General</label>
+                            <input type="file" name="imagen" class="form-control">
+                            {% if producto.imagen %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Imagen actual:</small><br>
+                                    <img src="{{ producto.imagen.url }}" alt="" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" class="mt-1">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <hr class="border-secondary my-4">
+
+                        <!-- Gestión de Sabores -->
+                        <h5 class="mb-3 fw-bold fs-6 text-info">
+                            <i class="fa-solid fa-droplet me-2"></i> Gestión de Sabores e Imágenes Específicas
+                        </h5>
+
+                        <!-- Sabores Actuales -->
+                        {% if producto.productosabor_set.all %}
+                            <label class="form-label small text-white mb-2" style="color: #ffffff !important;">Sabores actuales guardados (puedes subirles otra foto o marcarlos para quitar):</label>
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                {% for ps in producto.productosabor_set.all %}
+                                    <div class="sabor-item-card d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-3">
+                                            {% if ps.imagen_sabor %}
+                                                <img src="{{ ps.imagen_sabor.url }}" alt="{{ ps.sabor.nombre }}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                                            {% else %}
+                                                <div style="width: 45px; height: 45px; background: #2a2d3d; border-radius: 8px; display: flex; align-items: center; justify-content: center;" class="text-white-50 small">Sin foto</div>
+                                            {% endif %}
+                                            <div>
+                                                <span class="fw-bold text-white fs-6">{{ ps.sabor.nombre }}</span>
+                                                <small class="d-block text-white" style="color: #ffffff !important; opacity: 0.9;">Stock actual: {{ ps.stock_sabor }} uds</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div>
+                                                <label class="form-label small mb-1 text-light" style="font-size: 0.75rem;">Cambiar foto sabor:</label>
+                                                <input type="file" name="imagen_sabor_existente_{{ ps.id }}" class="form-control form-control-sm" accept="image/*">
+                                            </div>
+                                            <div class="form-check mt-3">
+                                                <input class="form-check-input" type="checkbox" name="quitar_sabores" value="{{ ps.sabor.id }}" id="sabor_{{ ps.sabor.id }}">
+                                                <label class="form-check-label text-danger small fw-bold" for="sabor_{{ ps.sabor.id }}">Quitar</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-dark border border-secondary text-white small mb-4 py-2">
+                                <i class="fa-solid fa-circle-info me-1 text-warning"></i> Este producto actualmente no tiene ningún sabor asociado.
+                            </div>
+                        {% endif %}
+
+                        <!-- Agregar Nuevos Sabores Dinámicos con su Imagen -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-warning mb-2">
+                                <i class="fa-solid fa-plus-circle me-1"></i> Agregar nuevos sabores (Nombre, Cantidad y Foto del Vape de ese sabor):
+                            </label>
+
+                            <div id="sabores-container" class="d-flex flex-column gap-2">
+                                <div class="input-group sabor-row align-items-center gap-2 bg-dark p-2 rounded-3 border border-secondary">
+                                    <input type="text" name="sabores[]" class="form-control" placeholder="Nombre (Ej: Limonada)">
+                                    <input type="number" name="cantidades[]" class="form-control text-center fw-bold" placeholder="Stock" value="1" min="0" style="max-width: 90px;">
+                                    <input type="file" name="imagens_sabores[]" class="form-control" accept="image/*">
+                                    <button type="button" class="btn btn-outline-danger btn-eliminar-sabor rounded-3">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="button" id="btn-add-sabor" class="btn btn-outline-warning btn-sm mt-3 fw-bold rounded-pill px-3">
+                                <i class="fa-solid fa-plus me-1"></i> Añadir otro sabor
+                            </button>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold rounded-3 shadow">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT PARA AGREGAR / ELIMINAR FILAS DE SABORES DINÁMICAMENTE -->
+    <script>
+        document.getElementById('btn-add-sabor').addEventListener('click', function() {
+            const container = document.getElementById('sabores-container');
+            const row = document.createElement('div');
+            row.className = 'input-group sabor-row align-items-center gap-2 bg-dark p-2 rounded-3 border border-secondary';
+            row.innerHTML = `
+                <input type="text" name="sabores[]" class="form-control" placeholder="Nombre (Ej: Fresa Hielo)">
+                <input type="number" name="cantidades[]" class="form-control text-center fw-bold" placeholder="Stock" value="1" min="0" style="max-width: 90px;">
+                <input type="file" name="imagens_sabores[]" class="form-control" accept="image/*">
+                <button type="button" class="btn btn-outline-danger btn-eliminar-sabor rounded-3">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-eliminar-sabor')) {
+                const rows = document.querySelectorAll('.sabor-row');
+                if (rows.length > 1) {
+                    e.target.closest('.sabor-row').remove();
+                } else {
+                    const inputs = rows[0].querySelectorAll('input');
+                    inputs[0].value = '';
+                    inputs[1].value = '1';
+                    inputs[2].value = '';
+                }
+            }
+        });
+    </script>
+
+    <!-- GLSL CANVAS SHADER PARA EL EFECTO HUMO NEÓN -->
+    <script>
+        const canvas = document.getElementById('webglSmoke');
+        const gl = canvas.getContext('webgl', { alpha: false, preserveDrawingBuffer: false }) || canvas.getContext('experimental-webgl');
+
+        if (gl) {
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', resize);
+
+            const vsSource = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision mediump float;
+                uniform vec2 u_resolution;
+                uniform float u_time;
+
+                float hash(vec2 p) {
+                    p = fract(p * vec2(123.34, 456.21));
+                    p += dot(p, p + 45.32);
+                    return fract(p.x * p.y);
+                }
+
+                float noise(vec2 p) {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    f = f * f * (3.0 - 2.0 * f);
+                    float a = hash(i);
+                    float b = hash(i + vec2(1.0, 0.0));
+                    float c = hash(i + vec2(0.0, 1.0));
+                    float d = hash(i + vec2(1.0, 1.0));
+                    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                }
+
+                float fbm(vec2 p) {
+                    float v = 0.0;
+                    float a = 0.5;
+                    vec2 shift = vec2(100.0);
+                    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+                    for (int i = 0; i < 5; ++i) {
+                        v += a * noise(p);
+                        p = rot * p * 2.0 + shift;
+                        a *= 0.5;
+                    }
+                    return v;
+                }
+
+                void main() {
+                    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                    st.x *= u_resolution.x / u_resolution.y;
+
+                    vec2 q = vec2(0.0);
+                    q.x = fbm(st + 0.04 * u_time);
+                    q.y = fbm(st + vec2(1.0));
+
+                    vec2 r = vec2(0.0);
+                    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.12 * u_time);
+                    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.09 * u_time);
+
+                    float f = fbm(st + r);
+
+                    vec3 color1 = 0.5 + 0.5 * cos(u_time * 0.2 + vec3(0.0, 2.0, 4.0));
+                    vec3 color2 = 0.5 + 0.5 * cos(u_time * 0.3 + vec3(4.0, 2.0, 0.0));
+                    vec3 darkBg = vec3(0.02, 0.02, 0.04);
+
+                    vec3 color = mix(darkBg, color1, clamp(f * f * 3.5, 0.0, 1.0));
+                    color = mix(color, color2, clamp(length(q), 0.0, 1.0));
+
+                    gl_FragColor = vec4(color * (f * 2.0), 1.0);
+                }
+            `;
+
+            function createShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,  1, -1, -1,  1,
+                -1,  1,  1, -1,  1,  1
+            ]), gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, "position");
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            const resLocation = gl.getUniformLocation(program, "u_resolution");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
+
+            resize();
+
+            function render(time) {
+                gl.uniform2f(resLocation, canvas.width, canvas.height);
+                gl.uniform1f(timeLocation, time * 0.001);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+
+            requestAnimationFrame(render);
+        }
+    </script>
+</body>
+</html>
