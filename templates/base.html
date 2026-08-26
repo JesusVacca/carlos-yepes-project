@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock title %}</title>
+    {% include 'components/head.html' %}
+    {% block css_child %}
+    {% endblock css_child %}
+</head>
+<body>
+    <canvas id="webglSmoke"></canvas>
+    <div class="wrapper">
+        <nav id="sidebar">
+            <div>
+                <!-- CABECERA CON LOGO GRANDE -->
+                <div class="sidebar-header">
+                    <img src="{% static 'vendedor/images/logo.png' %}" alt="Vapes Yepes Logo" class="sidebar-logo-large">
+                    <span class="fw-bold text-white" style="font-size: 0.85rem; letter-spacing: 1px;">VAPES YEPES</span>
+                </div>
+
+                <ul class="sidebar-menu">
+                    <div class="sidebar-section-title">Módulos</div>
+                    <li><a href="{% url 'inicio' %}" class="active"><i class="fa-solid fa-house"></i> Inicio</a></li>
+                    <li><a href="{% url 'vendedor:menu_principal' %}"><i class="fa-solid fa-dashboard"></i>Sección principal</a></li>
+                    <li><a href="{% url 'vendedor:panel' %}"><i class="fa-solid fa-cash-register"></i> Ventas</a></li>
+                    <li><a href="{% url 'vendedor:panel_general' %}"><i class="fa-solid fa-boxes-stacked"></i> Stock / Productos</a></li>
+                    <li><a href="/admin"><i class="fa-solid fa-gear"></i>Admin de django</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div id="content">
+            <div class="top-navbar">
+                <div class="d-flex align-items-center">
+                    <div class="dropdown text-end">
+                        <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle text-white d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-2 shadow" style="width: 35px; height: 35px; font-size: 0.85rem;">
+                                VY
+                            </div>
+                            <div class="text-start me-2">
+                                <span class="d-block fw-bold text-white" style="font-size: 0.85rem;">Vapes Yepes</span>
+                                <span style="font-size: 0.7rem; color: #cbd5e1 !important;">Administrador</span>
+                            </div>
+                        </a>
+                    </div>
+                    <a href="{% url 'vendedor:logout' %}" class="btn btn-outline-danger btn-sm ms-3 rounded-pill px-3 fw-bold">
+                        <i class="fa-solid fa-right-from-bracket me-1"></i> Salir
+                    </a>
+                </div>
+            </div>
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'scripts/script.js' %}"></script>
+    {% block script_child %}
+    {% endblock script_child %}
+</body>
+</html>

@@ -1,0 +1,267 @@
+:root {
+    --sidebar-bg: rgba(11, 12, 16, 0.85);
+    --card-bg: rgba(18, 19, 26, 0.75);
+    --card-hover-bg: rgba(24, 25, 35, 0.85);
+    --border-color: rgba(255, 255, 255, 0.12);
+    --neon-purple: #8b5cf6;
+    --neon-purple-light: #c084fc;
+    --neon-blue: #3b82f6;
+    --text-main: #ffffff;
+    --text-muted: #cbd5e1;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #030305;
+    color: var(--text-main);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* =====================================================
+   FONDO HUMO NEÓN GLSL (FIXED FULLSCREEN)
+===================================================== */
+#webglSmoke {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    position: relative;
+    z-index: 1;
+}
+
+/* Sidebar fino con efecto cristal */
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+/* Cabecera del Sidebar con Logo Grande y Centrado */
+.sidebar-header {
+    padding: 25px 15px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-logo-large {
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.7));
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 15px 12px;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.sidebar-menu li {
+    margin-bottom: 6px;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: #cbd5e1;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.sidebar-menu a:hover {
+    background: rgba(139, 92, 246, 0.2);
+    color: #ffffff;
+}
+
+.sidebar-menu a.active {
+    background: rgba(139, 92, 246, 0.3);
+    color: #ffffff;
+    box-shadow: inset 3px 0 0 var(--neon-purple);
+}
+
+.sidebar-menu a i {
+    margin-right: 12px;
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 15px 15px 5px 15px;
+    letter-spacing: 1.2px;
+    font-weight: bold;
+}
+
+#content {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    padding: 25px 30px;
+}
+
+.top-navbar {
+    background: rgba(18, 19, 26, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 12px 25px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    background: var(--card-hover-bg);
+    border-color: rgba(139, 92, 246, 0.4);
+    transform: translateY(-2px);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--neon-purple-light), var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+}
+
+/* Módulos Principales Arriba */
+.module-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 200px;
+}
+
+.module-icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.card-desc {
+    color: #cbd5e1 !important;
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+/* Tarjetas de Dashboard */
+.dashboard-stat-card {
+    padding: 20px;
+    position: relative;
+    height: 125px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stat-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon-wrapper {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.dashboard-stat-card span,
+.glass-card span {
+    color: #cbd5e1 !important;
+}
+
+/* Tabla Estilo Dashboard */
+.table-custom {
+    color: #ffffff !important;
+    background: transparent !important;
+    margin-bottom: 0 !important;
+}
+
+.table-custom th {
+    background: transparent !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: #e2e8f0 !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 12px 15px !important;
+}
+
+.table-custom td {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    color: #ffffff !important;
+    padding: 12px 15px !important;
+}
+
+.btn-modern {
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}

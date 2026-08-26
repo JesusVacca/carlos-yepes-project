@@ -1,12 +1,14 @@
 from django.contrib.auth.views import LoginView
+from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from tienda.models import Producto, Sabor, ProductoSabor
 from .models import Venta, DetalleVenta
 from django.utils import timezone
 from itertools import zip_longest
+from datetime import datetime, timedelta
 
 
 class CustomLoginView(LoginView):
@@ -26,12 +28,33 @@ def logout_view(request):
 def panel_vendedor(request):
     productos = Producto.objects.all()
     ventas_recientes = Venta.objects.all().order_by('-fecha')[:5]
-
+    hoy = timezone.localdate()
+    inicio_hoy = timezone.make_aware(
+        datetime.combine(hoy, datetime.min.time())
+    )
+    inicio_manana = inicio_hoy + timedelta(days=1)
+    total_ventas_hoy = (
+            Venta.objects
+            .filter(
+                fecha__gte=inicio_hoy,
+                fecha__lt=inicio_manana
+            )
+            .aggregate(total_sum=Sum('total'))['total_sum'] or 0
+    )
+    ventas_hoy = (
+        Venta.objects
+        .filter(
+            fecha__gte=inicio_hoy,
+            fecha__lt=inicio_manana
+        )
+    ).count()
     context = {
         'productos': productos,
         'ventas_recientes': ventas_recientes,
+        'total_ventas_hoy':total_ventas_hoy,
+        'cantidad_ventas_hoy':ventas_hoy,
     }
-    return render(request, 'vendedor/panel.html', context)
+    return render(request, 'vendedor/employee_panel.html', context)
 
 
 @login_required(login_url='/vendedor/login/')
@@ -121,27 +144,45 @@ def panel_general(request):
 def menu_principal(request):
     hoy = timezone.now().date()
 
-    ventas_hoy = Venta.objects.filter(fecha__date=hoy)
-    total_ventas_hoy = sum(v.total for v in ventas_hoy) if ventas_hoy else 0
-    cantidad_ventas_hoy = ventas_hoy.count()
-
     productos = Producto.objects.all()
     productos_disponibles = productos.count()
 
     stock_total = sum(p.stock for p in productos) if productos else 0
     ventas_recientes = Venta.objects.all().order_by('-fecha')[:5]
 
+    inicio_hoy = timezone.make_aware(
+        datetime.combine(hoy, datetime.min.time())
+    )
+    inicio_manana = inicio_hoy + timedelta(days=1)
+
+    ventas_hoy = (
+        Venta.objects
+        .filter(
+            fecha__gte=inicio_hoy,
+            fecha__lt=inicio_manana
+        )
+    ).count()
+
+    total_ventas_hoy = (
+            Venta.objects
+            .filter(
+                fecha__gte=inicio_hoy,
+                fecha__lt=inicio_manana
+            )
+            .aggregate(total_sum=Sum('total'))['total_sum'] or 0
+    )
+
     context = {
-        'cantidad_ventas_hoy': cantidad_ventas_hoy,
+        'cantidad_ventas_hoy': ventas_hoy,
         'total_ventas_hoy': total_ventas_hoy,
         'productos_disponibles': productos_disponibles,
         'stock_total': stock_total,
         'ventas_recientes': ventas_recientes,
     }
 
-    return render(request, 'vendedor/menu_principal.html', context)
+    return render(request, 'vendedor/main_menu.html', context)
 
-
+@login_required(login_url='/vendedor/login/')
 def editar_producto(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
 
@@ -201,7 +242,7 @@ def editar_producto(request, producto_id):
 
     return render(request, 'vendedor/editar_producto.html', {'producto': producto})
 
-
+@login_required(login_url='/vendedor/login/')
 def crear_producto(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -247,7 +288,15 @@ def crear_producto(request):
     return render(request, 'vendedor/crear_producto.html')
 
 
+@login_required(login_url='/vendedor/login/')
 def eliminar_producto(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
     producto.delete()
     return redirect('vendedor:panel_general')
+
+
+@login_required(login_url='/vendedor/login/')
+def eliminar_venta(request, pk):
+    venta = get_object_or_404(Venta, pk=pk)
+    venta.delete()
+    return redirect('vendedor:panel')

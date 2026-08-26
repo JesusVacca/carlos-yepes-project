@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="text-center mb-4 py-2">
+        <h1 class="fw-bold display-6 text-white mb-1">Bienvenido al <span class="gradient-text">Sistema</span></h1>
+        <p class="mb-0" style="font-size: 0.9rem; color: #cbd5e1 !important;">Selecciona el módulo que deseas administrar hoy. El control total de tu tienda está en tus manos.</p>
+    </div>
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="glass-card module-card">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="module-icon-box bg-primary bg-opacity-25 text-primary shadow">
+                        <i class="fa-solid fa-cash-register"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="fw-bold text-white mb-1 fs-5">Registrar Venta</h3>
+                        <p class="card-desc mb-0">Procesa ventas directas y descuenta stock automáticamente.</p>
+                    </div>
+                </div>
+                <a href="{% url 'vendedor:panel' %}" class="btn btn-primary btn-modern w-100 shadow mt-2">
+                    <i class="fa-solid fa-arrow-right me-2"></i> Ir a Ventas
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="glass-card module-card">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="module-icon-box bg-success bg-opacity-25 text-success shadow">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="fw-bold text-white mb-1 fs-5">Control de Stock / Productos</h3>
+                        <p class="card-desc mb-0">Registra nueva mercancía y gestiona sabores específicos.</p>
+                    </div>
+                </div>
+                <a href="{% url 'vendedor:panel_general' %}" class="btn btn-success btn-modern w-100 shadow mt-2 text-white fw-bold">
+                    <i class="fa-solid fa-arrow-right me-2"></i> Gestionar Stock
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Tarjetas Dashboard Superiores (CON DATOS REALES DE DJANGO) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card dashboard-stat-card">
+                <div class="stat-top-row">
+                    <div class="stat-icon-wrapper" style="background: rgba(139, 92, 246, 0.25); color: #c084fc;">
+                        <i class="fa-solid fa-bag-shopping"></i>
+                    </div>
+                    <span class="fw-semibold" style="font-size: 0.78rem; color: #cbd5e1 !important;">Ventas Hoy</span>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-white mb-0 fs-4">{{ cantidad_ventas_hoy }}</h4>
+                    <span style="font-size: 0.72rem; color: #cbd5e1 !important;">${{ total_ventas_hoy|floatformat:0 }} COP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TARJETA DE PRODUCTOS ENLAZADA AL PANEL GENERAL -->
+        <div class="col-md-3">
+            <a href="{% url 'vendedor:panel_general' %}" class="text-decoration-none d-block">
+                <div class="glass-card dashboard-stat-card">
+                    <div class="stat-top-row">
+                        <div class="stat-icon-wrapper" style="background: rgba(59, 130, 246, 0.25); color: #60a5fa;">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+                        <span class="fw-semibold" style="font-size: 0.78rem; color: #cbd5e1 !important;">Productos</span>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-white mb-0 fs-4">{{ productos_disponibles }}</h4>
+                        <span style="font-size: 0.72rem; color: #cbd5e1 !important;">Registrados</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card dashboard-stat-card">
+                <div class="stat-top-row">
+                    <div class="stat-icon-wrapper" style="background: rgba(16, 185, 129, 0.25); color: #34d399;">
+                        <i class="fa-solid fa-cubes"></i>
+                    </div>
+                    <span class="fw-semibold" style="font-size: 0.78rem; color: #cbd5e1 !important;">Stock Total</span>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-white mb-0 fs-4">{{ stock_total }}</h4>
+                    <span style="font-size: 0.72rem; color: #cbd5e1 !important;">Unidades</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card dashboard-stat-card">
+                <div class="stat-top-row">
+                    <div class="stat-icon-wrapper" style="background: rgba(245, 158, 11, 0.25); color: #fbbf24;">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <span class="fw-semibold" style="font-size: 0.78rem; color: #cbd5e1 !important;">Ingresos Hoy</span>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-white mb-0 fs-4">${{ total_ventas_hoy|floatformat:0 }}</h4>
+                    <span style="font-size: 0.72rem; color: #cbd5e1 !important;">Día actual</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dos Bloques Inferiores Paralelos -->
+    <div class="row g-4">
+        <!-- Ventas Recientes (DINÁMICO CON BUCLE FOR) -->
+        <div class="col-md-6">
+            <div class="glass-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center px-2 py-2 mb-2">
+                    <h6 class="fw-bold text-white mb-0" style="font-size: 0.9rem;">
+                        <i class="fa-solid fa-calendar-days me-2" style="color: #c084fc;"></i> Ventas recientes
+                    </h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-custom align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Vendedor</th>
+                                <th>Total</th>
+                                <th>Fecha</th>
+                                <th class="text-end">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ventas_recientes %}
+                                <tr>
+                                    <td>#{{ venta.id }}</td>
+                                    <td>{{ venta.vendedor.username|default:"Admin" }}</td>
+                                    <td>${{ venta.total|floatformat:0 }}</td>
+                                    <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-success bg-opacity-25 text-success">Completado</span>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4" style="font-size: 0.85rem; color: #cbd5e1 !important;">
+                                        No hay ventas registradas todavía.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos más vendidos -->
+        <div class="col-md-6">
+            <div class="glass-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center px-2 py-2 mb-2">
+                    <h6 class="fw-bold text-white mb-0" style="font-size: 0.9rem;">
+                        <i class="fa-solid fa-fire text-warning me-2"></i> Productos más vendidos
+                    </h6>
+                    <span style="font-size: 0.75rem; color: #cbd5e1 !important;">Estadísticas</span>
+                </div>
+                <div class="d-flex flex-column justify-content-center align-items-center py-4 text-center" style="min-height: 140px;">
+                    <i class="fa-solid fa-chart-line fs-3 mb-2" style="color: #cbd5e1; opacity: 0.6;"></i>
+                    <p class="small mb-0" style="font-size: 0.85rem; color: #cbd5e1 !important;">Módulo enlazado correctamente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
